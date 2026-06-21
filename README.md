@@ -30,17 +30,19 @@ Interactive desktop application for visualizing and annotating ECG data from par
 sudo apt-get install qt6-base-dev libapache-arrow-dev libparquet-dev
 ```
 
-For QCustomPlot (if not in system packages):
-```bash
-# Download from https://www.qcustomplot.com/
-# Copy qcustomplot.h and qcustomplot.cpp to src/
-```
-
-### macOS
+### Fedora/RHEL
 
 ```bash
-brew install qt apache-arrow parquet
+sudo dnf install qt6-qtbase-devel libarrow-devel parquet-libs-devel
 ```
+
+
+### QCustomPlot Setup (if needed)
+
+If QCustomPlot is not in your system packages:
+1. Download from https://www.qcustomplot.com/
+2. Copy `qcustomplot.h` and `qcustomplot.cpp` to `src/`
+3. Uncomment lines in CMakeLists.txt to include source files
 
 ### Build
 
@@ -75,4 +77,3 @@ Your parquet file must contain these columns:
 - `target` (integer): annotation flags (0 or 1)
 
 Only target=1 markers are displayed as vertical lines, positioned slightly above the ECG value at each annotation point.
-

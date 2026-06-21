@@ -1,0 +1,5 @@
+{
+    "C_Cpp.default.includePath": [
+        "/usr/include/qt6/QtWidgets"
+    ]
+}
