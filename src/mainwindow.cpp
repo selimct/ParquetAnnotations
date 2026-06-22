@@ -574,6 +574,8 @@ void MainWindow::handleMousePress(QMouseEvent *event)
             selectMarker(-1);
 
         dragging = false;
+        view_dragging = false;
+        view_drag_active = false;
         clearSelectionRect();
         return;
     }
@@ -599,11 +601,36 @@ void MainWindow::handleMousePress(QMouseEvent *event)
     else
     {
         selectMarker(findMarkerAt(event->pos()));
+        if (event->button() == Qt::LeftButton)
+        {
+            view_drag_start = event->pos();
+            view_drag_x_lower = plot->xAxis->range().lower;
+            view_drag_x_upper = plot->xAxis->range().upper;
+            view_dragging = true;
+            view_drag_active = false;
+        }
     }
 }
 
 void MainWindow::handleMouseMove(QMouseEvent *event)
 {
+    if (current_mode == InteractionMode::Normal && view_dragging)
+    {
+        int dx = event->pos().x() - view_drag_start.x();
+        if (!view_drag_active && std::abs(dx) <= 3)
+            return;
+
+        view_drag_active = true;
+        double x_start = plot->xAxis->pixelToCoord(view_drag_start.x());
+        double x_current = plot->xAxis->pixelToCoord(event->pos().x());
+        double x_delta = x_start - x_current;
+
+        plot->xAxis->setRange(view_drag_x_lower + x_delta, view_drag_x_upper + x_delta);
+        updateMarkerLabelPositions();
+        plot->replot();
+        return;
+    }
+
     if (!dragging)
         return;
 
@@ -619,6 +646,13 @@ void MainWindow::handleMouseMove(QMouseEvent *event)
 
 void MainWindow::handleMouseRelease(QMouseEvent *event)
 {
+    if (current_mode == InteractionMode::Normal && view_dragging)
+    {
+        view_dragging = false;
+        view_drag_active = false;
+        return;
+    }
+
     if (!dragging)
         return;
     dragging = false;

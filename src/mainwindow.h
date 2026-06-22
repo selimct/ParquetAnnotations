@@ -92,6 +92,11 @@ private:
     QPoint drag_start;
     QCPItemLine *selection_rect[4];
     bool dragging = false;
+    QPoint view_drag_start;
+    double view_drag_x_lower = 0.0;
+    double view_drag_x_upper = 0.0;
+    bool view_dragging = false;
+    bool view_drag_active = false;
 
     QPushButton *box_zoom_btn;
     QPushButton *constrained_zoom_btn;
