@@ -1,6 +1,8 @@
 #include "mainwindow.h"
 #include "parquet_reader.h"
 #include "qcustomplot.h"
+#include <QApplication>
+#include <QClipboard>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QPushButton>
@@ -188,11 +190,16 @@ void MainWindow::exportMarkers()
         return;
     }
 
-    QTextStream out(&file);
-    out << formatMarkerLine("false_pos", MarkerType::FalsePositive) << "\n";
-    out << formatMarkerLine("false_neg", MarkerType::FalseNegative) << "\n";
+    QString export_text = formatMarkerLine("false_pos", MarkerType::FalsePositive) + "\n" +
+                          formatMarkerLine("false_neg", MarkerType::FalseNegative) + "\n";
 
-    QMessageBox::information(this, "Export Markers", QString("Exported markers to %1").arg(filename));
+    QTextStream out(&file);
+    out << export_text;
+
+    QApplication::clipboard()->setText(export_text);
+
+    QMessageBox::information(this, "Export Markers",
+                             QString("Exported markers to %1 and copied them to the clipboard.").arg(filename));
 }
 
 void MainWindow::zoomIn()
