@@ -5,16 +5,18 @@
 #include <vector>
 #include <memory>
 
-struct ParquetData {
+struct ParquetData
+{
     std::vector<double> raw_idx;
     std::vector<double> ecg1_rotated;
     std::vector<double> puls_raw;
     std::vector<int> target;
 };
 
-class ParquetReader {
+class ParquetReader
+{
 public:
-    static std::unique_ptr<ParquetData> read(const std::string& filename);
+    static std::unique_ptr<ParquetData> read(const std::string &filename);
 };
 
 #endif // PARQUET_READER_H

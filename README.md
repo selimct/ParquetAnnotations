@@ -6,7 +6,7 @@ Interactive desktop application for visualizing and annotating ECG data from par
 
 - **Single unified plot with:**
   - Blue line: ECG1 (rotated) waveform
-  - Green line: Pulse signal
+  - Orange line: Pulse signal
   - Semi-transparent red dashed lines: Target annotations (1 only)
 - **Interactive controls:**
   - Zoom: scroll wheel
@@ -36,11 +36,11 @@ sudo apt-get install qt6-base-dev libapache-arrow-dev libparquet-dev
 sudo dnf install qt6-qtbase-devel libarrow-devel parquet-libs-devel
 ```
 
-
 ### QCustomPlot Setup (if needed)
 
 If QCustomPlot is not in your system packages:
-1. Download from https://www.qcustomplot.com/
+
+1. Download from <https://www.qcustomplot.com/>
 2. Copy `qcustomplot.h` and `qcustomplot.cpp` to `src/`
 3. Uncomment lines in CMakeLists.txt to include source files
 
@@ -63,7 +63,7 @@ make
 2. Select a `.parquet` file
 3. View the three overlaid signals:
    - ECG1 waveform (blue)
-   - Pulse signal (green)
+   - Pulse signal (orange)
    - Target annotations (red dashed lines at flagged positions)
 4. Use mouse wheel to zoom, drag to pan
 5. Hover over any point to read coordinates
@@ -71,6 +71,7 @@ make
 ## Data Format
 
 Your parquet file must contain these columns:
+
 - `raw_idx` (numeric): sample index
 - `ecg1_rotated` (numeric): ECG signal
 - `puls_raw` (numeric): pulse/heart rate signal
