@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "parquet_reader.h"
 #include "qcustomplot.h"
+#include <QAction>
 #include <QApplication>
 #include <QClipboard>
 #include <QVBoxLayout>
@@ -8,11 +9,14 @@
 #include <QPushButton>
 #include <QFileDialog>
 #include <QFile>
+#include <QFileInfo>
 #include <QLabel>
 #include <QMessageBox>
 #include <QMouseEvent>
 #include <QKeyEvent>
+#include <QDir>
 #include <QStringList>
+#include <QSettings>
 #include <QToolBar>
 #include <QTextStream>
 #include <QDoubleSpinBox>
@@ -59,9 +63,11 @@ void MainWindow::setupUI()
     plot->xAxis->setLabel("raw_idx");
     plot->yAxis->setLabel("Values");
     connect(plot->xAxis, QOverload<const QCPRange &>::of(&QCPAxis::rangeChanged),
-            this, [this](const QCPRange &) { updateMarkerLabelPositions(); });
+            this, [this](const QCPRange &)
+            { updateMarkerLabelPositions(); });
     connect(plot->yAxis, QOverload<const QCPRange &>::of(&QCPAxis::rangeChanged),
-            this, [this](const QCPRange &) { updateMarkerLabelPositions(); });
+            this, [this](const QCPRange &)
+            { updateMarkerLabelPositions(); });
     plot->installEventFilter(this);
     main_layout->addWidget(plot);
 
@@ -81,22 +87,41 @@ void MainWindow::setupToolbar()
     constrained_zoom_btn = new QPushButton("Constrained Zoom");
     connect(constrained_zoom_btn, &QPushButton::clicked, this, &MainWindow::setConstrainedZoomMode);
     constrained_zoom_btn->setCheckable(true);
+    constrained_zoom_btn->setToolTip("Shortcut: C");
     toolbar->addWidget(constrained_zoom_btn);
 
     add_marker_btn = new QPushButton("Add Marker");
     connect(add_marker_btn, &QPushButton::clicked, this, &MainWindow::setAddMarkerMode);
     add_marker_btn->setCheckable(true);
+    add_marker_btn->setToolTip("Shortcut: M");
     toolbar->addWidget(add_marker_btn);
 
     add_fp_marker_btn = new QPushButton("Add FP");
     connect(add_fp_marker_btn, &QPushButton::clicked, this, &MainWindow::setAddFalsePositiveMode);
     add_fp_marker_btn->setCheckable(true);
+    add_fp_marker_btn->setToolTip("Shortcut: P");
     toolbar->addWidget(add_fp_marker_btn);
 
     add_fn_marker_btn = new QPushButton("Add FN");
     connect(add_fn_marker_btn, &QPushButton::clicked, this, &MainWindow::setAddFalseNegativeMode);
     add_fn_marker_btn->setCheckable(true);
+    add_fn_marker_btn->setToolTip("Shortcut: N");
     toolbar->addWidget(add_fn_marker_btn);
+
+    auto addWindowShortcut = [this](const QString &text, const QKeySequence &shortcut, auto slot)
+    {
+        QAction *action = new QAction(text, this);
+        action->setShortcut(shortcut);
+        action->setShortcutContext(Qt::WindowShortcut);
+        connect(action, &QAction::triggered, this, [this, slot]()
+                { (this->*slot)(); });
+        addAction(action);
+    };
+
+    addWindowShortcut("Toggle Constrained Zoom", QKeySequence("C"), &MainWindow::setConstrainedZoomMode);
+    addWindowShortcut("Toggle Add Marker", QKeySequence("M"), &MainWindow::setAddMarkerMode);
+    addWindowShortcut("Toggle Add FP", QKeySequence("P"), &MainWindow::setAddFalsePositiveMode);
+    addWindowShortcut("Toggle Add FN", QKeySequence("N"), &MainWindow::setAddFalseNegativeMode);
 
     toolbar->addAction("Export Markers", this, &MainWindow::exportMarkers);
 
@@ -275,9 +300,14 @@ void MainWindow::applyTargetHeight()
 
 void MainWindow::openFile()
 {
-    QString filename = QFileDialog::getOpenFileName(this, "Open Parquet File", "", "Parquet Files (*.parquet)");
+    QSettings settings("ParquetAnnotations", "ParquetAnnotations");
+    QString last_directory = settings.value("files/lastParquetDirectory", QDir::homePath()).toString();
+
+    QString filename = QFileDialog::getOpenFileName(this, "Open Parquet File", last_directory, "Parquet Files (*.parquet)");
     if (filename.isEmpty())
         return;
+
+    settings.setValue("files/lastParquetDirectory", QFileInfo(filename).absolutePath());
 
     try
     {
